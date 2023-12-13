@@ -1,4 +1,4 @@
-app.py
+1. app.py
 
 @app.route('/login', methods=["GET", "POST"])
 def login()
@@ -10,7 +10,7 @@ flash(f"Hello, {user.username}!", "success")
 session['username']=user.username
 return redirect("/")
 
-base.html
+2. base.html
 
 added `{% if not session['username'] %}` instead of `{% if not g.user %}` in
 {% endif %} {% if not session['username'] %}
@@ -18,7 +18,7 @@ added `{% if not session['username'] %}` instead of `{% if not g.user %}` in
 <li><a href="/signup">Sign up</a></li>
 <li><a href="/login">Log in</a></li>
 
-detail.html
+3. detail.html
 
 replaced this `<div id="warbler-hero" class="full-width"></div>` for this
 
@@ -28,3 +28,20 @@ replaced this `<div id="warbler-hero" class="full-width"></div>` for this
   id="warbler-hero"
   class="full-width"
 />
+
+4. added 'overlaps' here because these relationships link with the same column in User:
+   followers = db.relationship(
+   "User",
+   secondary="follows",
+   primaryjoin=(Follows.user_being_followed_id == id),
+   secondaryjoin=(Follows.user_following_id == id),
+   overlaps="following"
+   )
+
+   following = db.relationship(
+   "User",
+   secondary="follows",
+   primaryjoin=(Follows.user_following_id == id),
+   secondaryjoin=(Follows.user_being_followed_id == id),
+   overlaps='followers'
+   )

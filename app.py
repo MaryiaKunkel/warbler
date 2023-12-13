@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm, EditProfileForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Likes, Follows
 
 CURR_USER_KEY = "curr_user"
 
@@ -311,6 +311,28 @@ def messages_destroy(message_id):
     return redirect(f"/users/{g.user.id}")
 
 
+app.route("/users/add_like/<int:msg_id>", methods=['POST'])
+def add_like(msg_id):
+    print('--------------------------------')
+    print(f"Received request for message ID: {msg_id}")
+    msg=Message.query.get(msg_id)
+    print(f"Retrieved message: {msg}")
+    user=User.query.get_or_404(g.user.id)
+    print(f"Current user: {user}")    
+    existing_like=Likes.query.filter_by(user_id=user.id, message_id=msg.id).first()
+    print(f"Existing like: {existing_like}")
+    print('--------------------------------')
+
+    if not existing_like:
+        new_like=Likes(user_id=user.id, message_id=msg.id)
+        db.session.add(new_like)
+        db.session.commit()
+    else: 
+        db.session.delete(existing_like)
+        db.session.commit()
+    return redirect('/')
+
+
 ##############################################################################
 # Homepage and error pages
 
@@ -332,15 +354,14 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-        # print('---------------------------')
-        # print(user)
-        # print('---------------------------')
 
         return render_template('home.html', messages=messages, user=user)
 
     else:
         return render_template('home-anon.html')
 
+
+    
 
 ##############################################################################
 # Turn off all caching in Flask
