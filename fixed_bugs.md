@@ -45,3 +45,13 @@ replaced this `<div id="warbler-hero" class="full-width"></div>` for this
    secondaryjoin=(Follows.user_being_followed_id == id),
    overlaps='followers'
    )
+
+5. home.html
+
+in <button
+            class="
+                btn 
+                btn-sm 
+                {{'btn-primary' if msg.id in likes else 'btn-secondary'}}"
+          >
+edited `{{'btn-primary' if msg.id in likes else 'btn-secondary'}}` for `{{'btn-primary' if msg in user.likes else 'btn-secondary'}}"`

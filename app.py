@@ -185,6 +185,18 @@ def users_followers(user_id):
     return render_template('users/followers.html', user=user)
 
 
+@app.route('/users/<int:user_id>/likes', methods=["GET", "POST"])
+def users_likes(user_id):
+    """Show list of likes of this user."""
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+    liked_msg=Message.query.join(Likes).filter(Likes.user_id==user.id)
+    return render_template('users/likes.html', user=user, liked_msg=liked_msg)
+
+
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
 def add_follow(follow_id):
     """Add a follow for the currently-logged-in user."""
@@ -311,11 +323,11 @@ def messages_destroy(message_id):
     return redirect(f"/users/{g.user.id}")
 
 
-app.route("/users/add_like/<int:msg_id>", methods=['POST'])
+@app.route("/users/add_like/<int:msg_id>", methods=['POST'])
 def add_like(msg_id):
     print('--------------------------------')
     print(f"Received request for message ID: {msg_id}")
-    msg=Message.query.get(msg_id)
+    msg=Message.query.get_or_404(msg_id)
     print(f"Retrieved message: {msg}")
     user=User.query.get_or_404(g.user.id)
     print(f"Current user: {user}")    
@@ -326,10 +338,10 @@ def add_like(msg_id):
     if not existing_like:
         new_like=Likes(user_id=user.id, message_id=msg.id)
         db.session.add(new_like)
-        db.session.commit()
     else: 
         db.session.delete(existing_like)
-        db.session.commit()
+        
+    db.session.commit()
     return redirect('/')
 
 

@@ -39,13 +39,13 @@ class Likes(db.Model):
 
     user_id = db.Column(
         db.Integer,
-        db.ForeignKey('users.id', ondelete='cascade')
+        db.ForeignKey('users.id', ondelete='cascade'),nullable=False
     )
 
     message_id = db.Column(
         db.Integer,
         db.ForeignKey('messages.id', ondelete='cascade'),
-        unique=True
+        unique=True, nullable=False
     )
 
 
@@ -127,7 +127,7 @@ class User(db.Model):
         return len(found_user_list) == 1
 
     def is_following(self, other_user):
-        """Is this user following `other_use`?"""
+        """Is this user following `other_user`?"""
 
         found_user_list = [user for user in self.following if user == other_user]
         return len(found_user_list) == 1
@@ -200,6 +200,8 @@ class Message(db.Model):
     )
 
     user = db.relationship('User', overlaps="messages")
+
+    likes=db.relationship('Likes', backref='message', cascade='all, delete-orphan')
 
 
 def connect_db(app):
