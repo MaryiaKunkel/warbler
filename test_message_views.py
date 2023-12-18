@@ -52,7 +52,7 @@ class MessageViewTestCase(TestCase):
         db.session.commit()
 
     def test_add_message(self):
-        """Can use add a message?"""
+        """Can user add a message?"""
 
         # Since we need to change the session to mimic logging in,
         # we need to use the changing-session trick:
@@ -71,3 +71,44 @@ class MessageViewTestCase(TestCase):
 
             msg = Message.query.one()
             self.assertEqual(msg.text, "Hello")
+
+    def test_show_message(self):
+        """Can a message be shown?"""
+        with app.test_client() as client:
+            # can now make requests to flask via `client`
+            message=Message(
+                text='test',
+                user_id=self.testuser.id
+            )
+            db.session.add(message)
+            db.session.commit()
+
+            resp = client.get(f'/messages/{message.id}')
+            
+            self.assertEqual(resp.status_code, 200)
+
+            html = resp.get_data(as_text=True)
+            self.assertIn('test', html)
+
+    def test_delete_message(self):
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            # Now, that session setting is saved, so we can have
+            # the rest of ours test
+                
+            message=Message(
+                text='test',
+                user_id=self.testuser.id
+            )
+            db.session.add(message)
+            db.session.commit()
+            resp = c.post(f'/messages/{message.id}/delete')
+
+            # Make sure it redirects
+            self.assertEqual(resp.status_code, 302)
+
+            msg = Message.query.first()
+            self.assertIsNone(msg)

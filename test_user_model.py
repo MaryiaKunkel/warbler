@@ -136,13 +136,13 @@ class UserModelTestCase(TestCase):
         self.assertTrue(user1.password, 'hashed_pwd')
 
         user2 = User.signup(
-            username='',
-            email='email@gmail.com',
+            username='username2',
+            email='',
             password='hashed_pwd',
             image_url='www.image_url.com/png',
         )
         db.session.commit()
-
+        
         self.assertNotIsInstance(user2, User)
 
     def test_authenticate(self):

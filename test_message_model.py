@@ -8,7 +8,7 @@
 import os
 from unittest import TestCase
 
-from models import db, User, Message, Follows
+from models import db, User, Message, Follows, Likes
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -79,10 +79,14 @@ class MessageModelTestCase(TestCase):
         db.session.add(message)
         db.session.commit()
 
-        message.likes.append(user)
+        like=Likes(
+            user_id=user.id,
+            message_id=message.id,
+        )
+        db.session.add(like)
         db.session.commit()
 
 
         # User should have no messages & no followers
         self.assertEqual(len(message.likes), 1)
-        self.assertEqual(message.likes[0].username, "testuser")   
+        self.assertEqual(message.likes[0].user.username, "testuser")   

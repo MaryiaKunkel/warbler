@@ -1,6 +1,7 @@
 import os, pdb
 
 from flask import Flask, render_template, request, flash, redirect, session, g
+from flask_login import login_required
 # from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
@@ -116,9 +117,9 @@ def logout():
     """Handle logout of user."""
 
     # IMPLEMENT THIS
-
-    session.pop('username')
-    flash('You successfully logged out!', 'success')
+    if 'username' in session:
+        session.clear()
+        flash('You successfully logged out!', 'success')
     return redirect('/login')
 
 ##############################################################################
@@ -144,7 +145,10 @@ def list_users():
 @app.route('/users/<int:user_id>')
 def users_show(user_id):
     """Show user profile."""
-
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
     user = User.query.get_or_404(user_id)
     location=user.location
     bio=user.bio

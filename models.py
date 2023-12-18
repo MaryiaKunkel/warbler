@@ -48,6 +48,8 @@ class Likes(db.Model):
         unique=True, nullable=False
     )
 
+    message = db.relationship('Message', back_populates='likes', overlaps='likes')
+
 
 class User(db.Model):
     """User in the system."""
@@ -138,7 +140,9 @@ class User(db.Model):
 
         Hashes password and adds user to system.
         """
-
+        if not username or not email or not password:
+            return ("Username, email, and password are required fields")
+        
         hashed_pwd = bcrypt.generate_password_hash(password).decode('UTF-8')
 
         user = User(
@@ -201,7 +205,8 @@ class Message(db.Model):
 
     user = db.relationship('User', overlaps="messages")
 
-    likes=db.relationship('Likes', backref='message', cascade='all, delete-orphan')
+    # likes=db.relationship('Likes', backref='message', cascade='all, delete-orphan')
+    likes = db.relationship('Likes', back_populates='message', cascade='all, delete-orphan',  overlaps='likes')
 
 
 def connect_db(app):
