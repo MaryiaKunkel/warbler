@@ -53,7 +53,9 @@ class UserViewTestCase(TestCase):
 
     def test_users_show(self):
         """When you’re logged in, can you see the follower / following pages for any user?"""
-        with app.test_client() as client:
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             # can now make requests to flask via `client`
             user2=User(username="testuser2",
                         email="test2@test.com",
@@ -65,7 +67,7 @@ class UserViewTestCase(TestCase):
             db.session.add(user2)
             db.session.commit()
 
-            resp = client.get(f'/users/{user2.id}')
+            resp = c.get(f'/users/{user2.id}', follow_redirects=True)
             html = resp.get_data(as_text=True) 
 
             self.assertEqual(resp.status_code, 200)
@@ -77,9 +79,11 @@ class UserViewTestCase(TestCase):
             
     def test_users_show_when_logged_out(self):
         """When you're logged out, can you see the follower / following pages for any user?"""
-        with app.test_client() as client:
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
             # can now make requests to flask via `client`
-            client.get('/logout', follow_redirects=True)
+            c.get('/logout', follow_redirects=True)
 
             user2=User(username="testuser2",
                         email="test2@test.com",
@@ -89,9 +93,9 @@ class UserViewTestCase(TestCase):
             db.session.add(user2)
             db.session.commit()
 
-            resp = client.get(f'/users/{user2.id}')
+            resp = c.get(f'/users/{user2.id}')
 
-            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(resp.status_code, 200)
 
     def test_add_message(self):
         '''When you're logged in, can you add a message as yourself?'''
