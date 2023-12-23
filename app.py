@@ -1,7 +1,7 @@
 import os, pdb
 
 from flask import Flask, render_template, request, flash, redirect, session, g
-from flask_login import login_required
+from flask_login import login_user
 # from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
@@ -78,6 +78,7 @@ def signup():
                 image_url=form.image_url.data or User.image_url.default.arg,
             )
             db.session.commit()
+            login_user(user)
 
         except IntegrityError:
             flash("Username already taken", 'danger')
