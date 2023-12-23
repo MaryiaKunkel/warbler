@@ -281,6 +281,8 @@ def delete_user():
 ##############################################################################
 # Messages routes:
 
+
+
 @app.route('/messages/new', methods=["GET", "POST"])
 def messages_add():
     """Add a message:
@@ -329,15 +331,9 @@ def messages_destroy(message_id):
 
 @app.route("/users/add_like/<int:msg_id>", methods=['POST'])
 def add_like(msg_id):
-    print('--------------------------------')
-    print(f"Received request for message ID: {msg_id}")
     msg=Message.query.get_or_404(msg_id)
-    print(f"Retrieved message: {msg}")
     user=User.query.get_or_404(g.user.id)
-    print(f"Current user: {user}")    
     existing_like=Likes.query.filter_by(user_id=user.id, message_id=msg.id).first()
-    print(f"Existing like: {existing_like}")
-    print('--------------------------------')
 
     if not existing_like:
         new_like=Likes(user_id=user.id, message_id=msg.id)

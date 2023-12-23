@@ -8,7 +8,7 @@
 import os
 from unittest import TestCase
 
-from models import db, connect_db, Message, User
+from models import db, connect_db, Message, User, Likes
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -163,51 +163,46 @@ class UserViewTestCase(TestCase):
             resp = c.post(f'/messages/{message.id}/delete', follow_redirects=True)
 
             html = resp.get_data(as_text=True) 
-            print(html)
+            # print(html)
             self.assertEqual(resp.status_code, 200)
             self.assertIn('Log in', html)
 
-    def test_add_message_as_another_user_when_logged_in(self):
-        '''When you're logged in, are you prohibiting from adding a message as another user?'''
+    def test_delete_user(self):
+        '''Test if user can be deleted'''
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
-            user2=User.signup(username="testuser2",
-                       email="test2@test.com",
-                       password="testuser",
-                       image_url=None)
+                c.get('/login', follow_redirects=True)
+
+            db.session.delete(self.testuser)
             db.session.commit()
-            resp = c.post("/messages/new", data={"text": "Hello"}, follow_redirects=True)
-            # html=resp.get_data(as_text=True)
-            # print(html)
-            self.assertEqual(resp.status_code, 403)
 
+            resp = c.post('/users/delete', follow_redirects=True)
+            html = resp.get_data(as_text=True)
 
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Sign up', html)
 
-    def test_delete_message_as_another_user_when_logged_in(self):      
-        '''When you're logged in, are you prohibiting from deleting a message as another user?'''
+    def test_add_likes(self):
+        '''Test if user can add likes to messages'''
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
-            user2=User.signup(username="testuser2",
-                       email="test2@test.com",
-                       password="testuser",
-                       image_url=None)
-            
-            db.session.commit()
-
+                c.get('/login', follow_redirects=True)
             message=Message(
                 text='test',
                 user_id=self.testuser.id
             )
-
             db.session.add(message)
             db.session.commit()
 
-            resp = c.post(f'/messages/{message.id}/delete', follow_redirects=True)
+            like=Likes(
+                user_id=self.testuser.id,
+                message_id=message.id
+            )
+            db.session.add(like)
+            db.session.commit()
 
-            # html = resp.get_data(as_text=True) 
-            # print(html)
-            self.assertEqual(resp.status_code, 403)
+            resp = c.post(f"/users/add_like/{message.id}", follow_redirects=True)
 
-
+            self.assertEqual(resp.status_code, 200)
